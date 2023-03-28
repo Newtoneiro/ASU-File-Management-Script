@@ -1,0 +1,28 @@
+{
+  "default_character": "_",
+  "default_permission": "rw-r--r--",
+  "dangerous_characters": [
+    ":",
+    "\"",
+    ".",
+    ";",
+    "*",
+    "?",
+    "$",
+    "#",
+    "'",
+    "|",
+    "\\",
+    "/"
+  ],
+  "unusual_permissions": [
+    "rwxrwxrwx",
+    "---rwxrwx",
+    "---r--r--",
+    "---rw-rw-",
+    "r--rwxrwx",
+    "rw-rwxrwx",
+    "--x--x--x"
+  ],
+  "temporary_extensions": [".tmp", "~"]
+}
