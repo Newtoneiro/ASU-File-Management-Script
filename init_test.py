@@ -10,16 +10,15 @@ SUB_DIR_2 = os.path.join(dirname, 'Y2')
 SUB_DIR_3 = os.path.join(dirname, 'Y3')
 
 
-def write_file(path: str, filename: str, extension: str, file_content: str):
-    """
+def write_file(path: str, filename: str, extension: str, file_content: str,
+               permissions: int = 0o644):
+    """""
     Write the contents to the file with given parameters.
     """
-    with open(
-         os.path.join(path, f"{filename}.{extension}"),
-         mode="w",
-         encoding="utf-8") as f:
-
+    full_path = os.path.join(path, f"{filename}.{extension}")
+    with open(full_path, mode="w+", encoding="utf-8") as f:
         f.write(file_content)
+    os.chmod(full_path, permissions)
 
 
 def clean_contents(folder: str):
@@ -65,5 +64,4 @@ if __name__ == "__main__":
     write_file(SUB_DIR_3, 'same_content', 'txt', 'same content')
     write_file(SUB_DIR_3, '3', 'txt', 'Hello from y3 subfolder.')
     write_file(SUB_DIR_3, 'bad\';name', 'bad', 'Bad Filename3')
-    write_file(SUB_DIR_3, 'bad_permissions', 'perm', 'Weird permissions')
-    os.chmod(os.path.join(SUB_DIR_3, 'bad_permissions.perm'), 0o777)
+    write_file(SUB_DIR_3, 'bad_perm', 'perm', 'Weird permissions', 0o777)
