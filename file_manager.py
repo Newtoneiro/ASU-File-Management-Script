@@ -47,8 +47,8 @@ class FileManager:
             file_name=path.split(os.sep)[-1], cur_src_path=self._destination)
         if is_duplicate:
             self._log_action('Same name', path, 'Keeping the newer.')
-            is_newer = os.path.getctime(path) < os.path.getctime(
-                                                           duplicate_path)
+            is_newer = os.path.getctime(path) > \
+                os.path.getctime(duplicate_path)
             if is_newer:
                 os.remove(duplicate_path)
             return is_newer
