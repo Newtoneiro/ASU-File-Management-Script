@@ -11,7 +11,12 @@
       "program": "${file}",
       "console": "integratedTerminal",
       "justMyCode": true,
-      "args": ["C:\\Users\\User\\OneDrive\\Pulpit\\ASU\\"]
+      "args": [
+        "C:\\Users\\User\\OneDrive\\Pulpit\\ASU\\X",
+        "C:\\Users\\User\\OneDrive\\Pulpit\\ASU\\Y1",
+        "C:\\Users\\User\\OneDrive\\Pulpit\\ASU\\Y2",
+        "C:\\Users\\User\\OneDrive\\Pulpit\\ASU\\Y3"
+      ]
     }
   ]
 }

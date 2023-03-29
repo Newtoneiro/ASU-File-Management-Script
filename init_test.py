@@ -23,6 +23,9 @@ def write_file(path: str, filename: str, extension: str, file_content: str):
 
 
 def clean_contents(folder: str):
+    """
+    Cleans out the contents of test dictionaries
+    """
     for filename in os.listdir(folder):
         file_path = os.path.join(folder, filename)
         try:
@@ -49,16 +52,18 @@ if __name__ == "__main__":
     write_file(SUB_DIR_1, '1', 'txt', 'Hello from y1 subfolder.')
     os.mkdir(SUB_DIR_1_SUB_DIR)
     write_file(SUB_DIR_1_SUB_DIR, 'same_content', 'txt', 'same content')
-    write_file(SUB_DIR_1_SUB_DIR, 'bad\'name', 'bad', 'Bad Filename')
+    write_file(SUB_DIR_1_SUB_DIR, 'bad\'name', 'bad', 'Bad Filename2')
 
     # SUB_DIR_2 = Y2
     write_file(SUB_DIR_2, 'same_content_diff_name', 'txt', 'same content')
     write_file(SUB_DIR_2, '2', 'txt', 'Hello from y2 subfolder.')
-    write_file(SUB_DIR_2, 'temporary', '~', 'temporary')
+    write_file(SUB_DIR_2, 'temporary', '~', 'temporary2')
     write_file(SUB_DIR_2, 'executable', 'exe', 'exec file')
+    write_file(SUB_DIR_2, 'single', 'txt', 'Howdy!')
 
     # SUB_DIR_3 = Y3
     write_file(SUB_DIR_3, 'same_content', 'txt', 'same content')
     write_file(SUB_DIR_3, '3', 'txt', 'Hello from y3 subfolder.')
-    write_file(SUB_DIR_3, 'bad\'name', 'bad', 'Bad Filename')
+    write_file(SUB_DIR_3, 'bad\';name', 'bad', 'Bad Filename3')
     write_file(SUB_DIR_3, 'bad_permissions', 'perm', 'Weird permissions')
+    os.chmod(os.path.join(SUB_DIR_3, 'bad_permissions.perm'), 0o777)

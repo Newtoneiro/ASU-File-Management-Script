@@ -2,15 +2,7 @@ import sys
 import os
 
 from config import Config
-
-
-def bfs_dir_structure(path: str, files_dict: dict[str, dict[str, int]]):
-    for filename in os.listdir(path):
-        new_path = os.path.join(path, filename)
-        if os.path.isfile(new_path):
-            files_dict[new_path] = {'O'}
-        else:
-            bfs_dir_structure(path=new_path, files_dict=files_dict)
+from file_manager import FileManager
 
 
 def check_path(path: str) -> str:
@@ -43,3 +35,7 @@ def get_arguments() -> tuple[str, list[str]]:
 if __name__ == "__main__":
     destination, source = get_arguments()
     config = Config()
+    file_manager = FileManager(destination=destination,
+                               source=source,
+                               config=config)
+    file_manager.start()
