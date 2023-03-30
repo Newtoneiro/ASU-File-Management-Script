@@ -11,7 +11,12 @@ class Config:
     """
     Class responsible for config management
     """
-    def __init__(self, filename: str = config_path):
+    def __init__(self,
+                 destination: str,
+                 source: list[str],
+                 filename: str = config_path):
+        self.destination = destination
+        self.source = source
         self._filename = filename
         self._json = self.get_json_content()
 

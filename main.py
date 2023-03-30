@@ -34,7 +34,7 @@ def get_arguments() -> tuple[str, list[str]]:
 
 if __name__ == "__main__":
     destination, source = get_arguments()
-    config = Config()
+    config = Config(destination, source)
     file_manager = FileManager(destination=destination,
                                source=source,
                                config=config)
