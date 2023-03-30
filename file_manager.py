@@ -44,7 +44,7 @@ class FileManager:
 
         # Check if file name is duplicate
         is_duplicate, duplicate_path = self._check_duplicate_name(
-            file_name=path.split(os.sep)[-1], cur_src_path=self._destination)
+            path=path, cur_src_path=self._destination)
         if is_duplicate:
             self._log_action('Same name', path, 'Keeping the newer.')
             is_newer = os.path.getctime(path) > \
@@ -55,7 +55,17 @@ class FileManager:
 
         # Check if file has unusual permissions
         if self._check_permissions(path=path):
-            self._log_action('Permissions', path, 'Removing.')
+            self._log_action('Permissions', path, 'Changing to default.')
+            os.chmod(path, self._config.get_oct_permissions(
+                self._config.default_permission))
+
+        # Check if the file name contains bad characters
+        is_bad, new_path = self._check_name(file_path=path)
+        if is_bad:
+            self._log_action('Bad name', path, 'Replacing bad chars.')
+            os.rename(path, new_path)
+            self._copy_file(new_path)
+            os.rename(new_path, path)
             return False
 
         return True
@@ -88,18 +98,19 @@ class FileManager:
         return any([file_path.endswith(ext)
                     for ext in self._config.temporary_extensions])
 
-    def _check_duplicate_name(self, file_name: str,
-                              cur_src_path: str) -> bool:
+    def _check_duplicate_name(self, path: str,
+                              cur_src_path: str) -> tuple[bool, str]:
         """
         Returns True if the file name already exists in destination.
         """
+        file_name = path.split(os.sep)[-1]
         for filename in os.listdir(cur_src_path):
             new_path = os.path.join(cur_src_path, filename)
             if os.path.isfile(new_path):
                 if file_name == filename:
                     return True, new_path
             else:
-                return self._check_duplicate_name(file_name=file_name,
+                return self._check_duplicate_name(path=file_name,
                                                   cur_src_path=new_path)
         return False, ''
 
@@ -113,6 +124,26 @@ class FileManager:
                           for perm in self._config.unusual_permissions]:
             return True
         return False
+
+    def _check_name(self, file_path: str) -> tuple[bool, str]:
+        """
+        Returns True if the file has unusual permissions defined in config
+        """
+        file_name = file_path.split(os.sep)[-1]
+        if any([bad_char in file_name for
+                bad_char in self._config.dangerous_characters]):
+
+            new_file_name = file_name
+            for bad_char in self._config.dangerous_characters:
+                new_file_name = new_file_name.replace(
+                    bad_char,
+                    self._config.default_character)
+
+            new_file_path = file_path.replace(file_name, new_file_name)
+
+            return True, new_file_path
+
+        return False, ''
 
     def _bfs_dir_structure(self, path: str):
         """
