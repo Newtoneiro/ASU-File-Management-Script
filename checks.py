@@ -9,12 +9,16 @@ class CheckMethod:
     """
     Base abstract class for easier checker developement
     """
-    def __init__(self, config: Config, method_name: str = ''):
+    def __init__(self,
+                 config: Config,
+                 method_name: str = '',
+                 default_action_str: str = ''):
         """
         Inits with config and method name
         """
         self._config = config
         self._method_name = method_name
+        self._default_action = default_action_str
 
     def check(self, path: str) -> bool:
         """
@@ -23,7 +27,15 @@ class CheckMethod:
         """
         result, action_path = self._do_check(path, self._config.destination)
         if result:
-            return self._action(path, action_path)
+            user_choice = self._ask_for_input(file_path=path)
+            if user_choice < 0:
+                exit(0)
+            elif user_choice == 0:
+                return False
+            elif user_choice == 1:
+                return True
+            else:
+                return self._action(path, action_path)
         return True
 
     def _do_check(self, path: str, destination_path: str) -> tuple[bool, str]:
@@ -40,12 +52,6 @@ class CheckMethod:
         """
         raise NotImplementedError()
 
-    def _log_action(self, path: str, action: str):
-        """
-        Logs performed action
-        """
-        print(f"> {self._method_name:<25}: {path:<40} | {action:<30}")
-
     def _copy_file(self, path: str):
         """
         Copies file from source to path relative to destination folder
@@ -58,13 +64,33 @@ class CheckMethod:
 
         shutil.copy(src=path, dst=destination_path)
 
+    def _log_action(self, path: str):
+        """
+        Logs file that didn't pass check
+        """
+        print(f"> {self._method_name:<20}: {path:<35}"
+              + f" | DEFAULT: {self._default_action:<30}")
+
+    def _ask_for_input(self, file_path: str) -> str:
+        """
+        Ask user for input for provided action
+        [no - N, yes - Y, default - D, quit - Q].
+        """
+        CHOICES = {'y': 1, 'n': 0, 'd': 2, 'q': -1}
+        self._log_action(file_path)
+        choice = input('Copy? >(N)o (Y)es (D)efault behaviour (Q)uit $')\
+            .lower()
+        while choice not in CHOICES.keys():
+            choice = input('Copy? >(N)o (Y)es (D)efault behaviour: ')
+        return CHOICES[choice]
+
 
 class CheckDuplicateContent(CheckMethod):
     """
     Check if file has it's duplicate in the destination folder.
     """
     def __init__(self, config: Config):
-        super().__init__(config, "Duplicate content")
+        super().__init__(config, 'Duplicate content', 'Keeping the oldest.')
 
     def _do_check(self, path: str, destination_path: str) -> tuple[bool, str]:
         """
@@ -85,7 +111,6 @@ class CheckDuplicateContent(CheckMethod):
         """
         DEFAULT: Keeps the oldest of the two files.
         """
-        super()._log_action(path, 'Keeping the oldest.')
         is_older = os.path.getctime(path) > \
             os.path.getctime(action_path)
         if is_older:
@@ -98,7 +123,7 @@ class CheckEmpty(CheckMethod):
     Check if file is empty
     """
     def __init__(self, config: Config):
-        super().__init__(config, "Empty file")
+        super().__init__(config, "Empty file", 'Don\'t copy.')
 
     def _do_check(self, path: str, destination_path: str) -> tuple[bool, str]:
         """
@@ -110,7 +135,6 @@ class CheckEmpty(CheckMethod):
         """
         DEFAULT: Don't copy empty files
         """
-        super()._log_action(path, 'Removing.')
         return False
 
 
@@ -119,7 +143,7 @@ class CheckTemporary(CheckMethod):
     Check if file is a temporary file
     """
     def __init__(self, config: Config):
-        super().__init__(config, "TMP file")
+        super().__init__(config, "TMP file", "Don\'t copy.")
 
     def _do_check(self, path: str, destination_path: str) -> tuple[bool, str]:
         """
@@ -132,7 +156,6 @@ class CheckTemporary(CheckMethod):
         """
         DEFAULT: Don't copy tmp files
         """
-        super()._log_action(path, 'Removing.')
         return False
 
 
@@ -141,7 +164,7 @@ class CheckDuplicateName(CheckMethod):
     Check if destination folder already contains file with the same name
     """
     def __init__(self, config: Config):
-        super().__init__(config, "Duplicate name")
+        super().__init__(config, "Duplicate name", 'Keeping the newest.')
 
     def _do_check(self, path: str, destination_path: str) -> tuple[bool, str]:
         """
@@ -161,9 +184,8 @@ class CheckDuplicateName(CheckMethod):
 
     def _action(self, path: str, action_path: str):
         """
-        DEFAULT: Keeps the oldest of the two files.
+        DEFAULT: Keeps the newest of the two files.
         """
-        super()._log_action(path, 'Keeping the newest.')
         is_newer = os.path.getctime(path) > \
             os.path.getctime(action_path)
         if is_newer:
@@ -176,7 +198,7 @@ class CheckPermissions(CheckMethod):
     Check if file has unusual permissions
     """
     def __init__(self, config: Config):
-        super().__init__(config, "Bad Permissions")
+        super().__init__(config, "Bad Permissions", 'Change to default.')
 
     def _do_check(self, path: str, destination_path: str) -> tuple[bool, str]:
         """
@@ -193,7 +215,6 @@ class CheckPermissions(CheckMethod):
         """
         DEFAULT: Change to default
         """
-        super()._log_action(path, 'Change to default.')
         os.chmod(path, self._config.get_oct_permissions(
                  self._config.default_permission))
         return True
@@ -204,7 +225,7 @@ class CheckName(CheckMethod):
     Check if file has dangerous characters in name
     """
     def __init__(self, config: Config):
-        super().__init__(config, "Bad name")
+        super().__init__(config, "Bad name", 'Replace bad chars.')
 
     def _do_check(self, path: str, destination_path: str) -> tuple[bool, str]:
         """
@@ -230,7 +251,6 @@ class CheckName(CheckMethod):
         """
         DEFAULT: Change to default name
         """
-        super()._log_action(path, 'Replacing bad chars.')
         os.rename(path, action_path)
         super()._copy_file(action_path)
         os.rename(action_path, path)
