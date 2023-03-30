@@ -3,6 +3,7 @@ import shutil
 import filecmp
 
 from config import Config
+from checks import CheckDuplicateContent
 
 
 class FileManager:
@@ -21,16 +22,21 @@ class FileManager:
         """
         Checks the file and returns True if the file can be copied
         """
-        # Check if the file content is duplicate
-        is_duplicate, duplicate_path = self._check_duplicate_content(
-            file_path=path, cur_src_path=self._destination)
-        if is_duplicate:
-            self._log_action('Duplicate', path, 'Keeping the oldest.')
-            is_older = os.path.getctime(path) > os.path.getctime(
-                                                           duplicate_path)
-            if is_older:
-                os.remove(duplicate_path)
-            return is_older
+        # # Check if the file content is duplicate
+        # is_duplicate, duplicate_path = self._check_duplicate_content(
+        #     file_path=path, cur_src_path=self._destination)
+        # if is_duplicate:
+        #     self._log_action('Duplicate', path, 'Keeping the oldest.')
+        #     is_older = os.path.getctime(path) > os.path.getctime(
+        #                                                    duplicate_path)
+        #     if is_older:
+        #         os.remove(duplicate_path)
+        #     return is_older
+
+        check = CheckDuplicateContent()
+        action = check.check(path, self._destination)
+        if action:
+            return True
 
         # Check if file is empty
         if self._check_empty(file_path=path):
