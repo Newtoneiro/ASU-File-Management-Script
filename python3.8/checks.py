@@ -170,8 +170,9 @@ class CheckDuplicateName(CheckMethod):
         already exists in destination.
         """
         file_name = path.split(os.sep)[-1]
-        print(file_name)
+        print(file_name, ": Name of the file")
         for filename in os.listdir(destination_path):
+            print(filename)
             new_path = os.path.join(destination_path, filename)
             if os.path.isfile(new_path):
                 if file_name == filename:
