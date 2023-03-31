@@ -173,12 +173,11 @@ class CheckDuplicateName(CheckMethod):
         for filename in os.listdir(destination_path):
             new_path = os.path.join(destination_path, filename)
             if os.path.isfile(new_path):
-                print(file_name, filename)
                 if file_name == filename:
                     return True, new_path
             else:
-                return self._do_check(path=path,
-                                      destination_path=new_path)
+                self._do_check(path=path,
+                               destination_path=new_path)
         return False, ''
 
     def _action(self, path, action_path):
