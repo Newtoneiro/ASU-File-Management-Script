@@ -103,8 +103,8 @@ class CheckDuplicateContent(CheckMethod):
                 if filecmp.cmp(new_path, path):
                     return True, new_path
             else:
-                return self._do_check(path=path,
-                                      destination_path=new_path)
+                self._do_check(path=path,
+                               destination_path=new_path)
         return False, ''
 
     def _action(self, path: str, action_path: str):
@@ -178,8 +178,8 @@ class CheckDuplicateName(CheckMethod):
                 if file_name == filename:
                     return True, new_path
             else:
-                return self._do_check(path=path,
-                                      destination_path=new_path)
+                self._do_check(path=path,
+                               destination_path=new_path)
         return False, ''
 
     def _action(self, path: str, action_path: str):
