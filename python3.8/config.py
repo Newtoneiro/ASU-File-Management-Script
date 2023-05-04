@@ -14,9 +14,11 @@ class Config:
     def __init__(self,
                  destination,
                  source,
+                 batchmode,
                  filename=config_path):
         self.destination = destination
         self.source = source
+        self.batchmode = batchmode
         self._filename = filename
         self._json = self.get_json_content()
 

@@ -23,9 +23,13 @@ class CheckMethod:
         Main method, calls do_check virtual function and calls action
         if required.
         """
-        result, action_path = self._do_check(path, self._config.destination)
+        result, action_path, add = self._do_check(path,
+                                                  self._config.destination)
         if result:
-            user_choice = self._ask_for_input(file_path=path)
+            user_choice = 2 if self._config.batchmode else \
+                self._ask_for_input(file_path=path,
+                                    conflict_path=action_path,
+                                    additional_log=add)
             if user_choice < 0:
                 exit(0)
             elif user_choice == 0:
@@ -62,24 +66,28 @@ class CheckMethod:
 
         shutil.copy(src=path, dst=destination_path)
 
-    def _log_action(self, path):
+    def _log_action(self, path, additional=""):
         """
         Logs file that didn't pass check
         """
-        print(f"> {self._method_name:<20}: {path:<35}"
-              + f" | DEFAULT: {self._default_action:<30}")
+        print(f"> {self._method_name:<20}: {path:<50}"
+              + f" | DEFAULT: {self._default_action} {additional}")
 
-    def _ask_for_input(self, file_path):
+    def _ask_for_input(self, file_path, conflict_path, additional_log=""):
         """
         Ask user for input for provided action
         [no - N, yes - Y, default - D, quit - Q].
         """
         CHOICES = {'y': 1, 'n': 0, 'd': 2, 'q': -1}
-        self._log_action(file_path)
-        choice = input('Copy? >(N)o (Y)es (D)efault behaviour (Q)uit $')\
+
+        conflictprompt = file_path if not conflict_path \
+            else f"{file_path} with {conflict_path}"
+        self._log_action(conflictprompt, additional_log)
+
+        choice = input('Copy? >(N)o (Y)es (D)efault behaviour (Q)uit \n$')\
             .lower()
         while choice not in CHOICES.keys():
-            choice = input('Copy? >(N)o (Y)es (D)efault behaviour: ')
+            choice = input('Copy? >(N)o (Y)es (D)efault behaviour (Q)uit \n$')
         return CHOICES[choice]
 
 
@@ -99,12 +107,15 @@ class CheckDuplicateContent(CheckMethod):
             new_path = os.path.join(destination_path, filename)
             if os.path.isfile(new_path):
                 if filecmp.cmp(new_path, path):
-                    return True, new_path
+                    older = path if os.path.getctime(path) > \
+                        os.path.getctime(new_path) else new_path
+                    return True, new_path, f"(Older file: {older})"
             else:
-                is_duplicate, new_path = self._do_check(path, new_path)
+                is_duplicate, new_path, additional = self._do_check(path,
+                                                                    new_path)
                 if is_duplicate:
-                    return is_duplicate, new_path
-        return False, ''
+                    return is_duplicate, new_path, additional
+        return False, '', ''
 
     def _action(self, path, action_path):
         """
@@ -128,7 +139,7 @@ class CheckEmpty(CheckMethod):
         """
         Requires action if the file is empty
         """
-        return os.stat(path).st_size == 0, ''
+        return os.stat(path).st_size == 0, '', ''
 
     def _action(self, path, action_path):
         """
@@ -149,7 +160,7 @@ class CheckTemporary(CheckMethod):
         Requires action if the file is temporary
         """
         return any([path.endswith(ext)
-                    for ext in self._config.temporary_extensions]), ''
+                    for ext in self._config.temporary_extensions]), '', ''
 
     def _action(self, path, action_path):
         """
@@ -175,12 +186,15 @@ class CheckDuplicateName(CheckMethod):
             new_path = os.path.join(destination_path, filename)
             if os.path.isfile(new_path):
                 if file_name == filename:
-                    return True, new_path
+                    newer = path if os.path.getctime(path) > \
+                        os.path.getctime(new_path) else new_path
+                    return True, new_path, f"(Newer file: {newer})"
             else:
-                is_duplicate, new_path = self._do_check(path, new_path)
+                is_duplicate, new_path, additional = self._do_check(path,
+                                                                    new_path)
                 if is_duplicate:
-                    return is_duplicate, new_path
-        return False, ''
+                    return is_duplicate, new_path, additional
+        return False, '', ''
 
     def _action(self, path, action_path):
         """
@@ -208,8 +222,8 @@ class CheckPermissions(CheckMethod):
         file_perms = f"{oct(st.st_mode)[-3:]}"
         if file_perms in [str(self._config.get_oct_permissions(perm))
                           for perm in self._config.unusual_permissions]:
-            return True, ''
-        return False, ''
+            return True, '', ''
+        return False, '', ''
 
     def _action(self, path, action_path):
         """
@@ -243,9 +257,9 @@ class CheckName(CheckMethod):
 
             new_file_path = path.replace(file_name, new_file_name)
 
-            return True, new_file_path
+            return True, new_file_path, ''
 
-        return False, ''
+        return False, '', ''
 
     def _action(self, path, action_path):
         """

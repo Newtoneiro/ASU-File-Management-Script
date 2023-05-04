@@ -1,5 +1,6 @@
 import sys
 import os
+import argparse
 
 from config import Config
 from file_manager import FileManager
@@ -19,22 +20,30 @@ def get_arguments():
     """
     Provide and check command line arguments.
     """
-    if len(sys.argv) < 2:
-        print("== |No destination directory and source directories given. |==")
-        sys.exit(-1)
-    elif len(sys.argv) < 3:
-        print("==| No source directories given. |==")
-        sys.exit(-1)
+    parser = argparse.ArgumentParser(prog='main',
+                                     description='What the program does')
+    parser.add_argument('-d',
+                        '--destination',
+                        required=True)
+    parser.add_argument('-s',
+                        '--source',
+                        nargs='+',
+                        required=True)
+    parser.add_argument('-b',
+                        '--batchmode',
+                        action='store_true')
 
-    destination_dir = check_path(sys.argv[1])
-    source_dirs = [check_path(path=path) for path in sys.argv[2:]]
+    args = parser.parse_args()
 
-    return destination_dir, source_dirs
+    destination_dir = check_path(args.destination)
+    source_dirs = [check_path(path=path) for path in args.source]
+
+    return destination_dir, source_dirs, args.batchmode
 
 
 if __name__ == "__main__":
-    destination, source = get_arguments()
-    config = Config(destination, source)
+    destination, source, batchmode = get_arguments()
+    config = Config(destination, source, batchmode)
     file_manager = FileManager(destination=destination,
                                source=source,
                                config=config)
